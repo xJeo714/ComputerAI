@@ -1,110 +1,76 @@
 # ==========================================
 # Computer AI
-# Version 0.3
+# Version 0.4
 # ==========================================
 
-Clear-Host Import-Module "$PSScriptRoot\Modules\Speech.psm1" -Force
+Clear-Host
+
+# --------------------------------------------------
+# Load Modules
+# --------------------------------------------------
+
+Import-Module "$PSScriptRoot\Modules\Config.psm1" -Force
+Import-Module "$PSScriptRoot\Modules\Logger.psm1" -Force
+Import-Module "$PSScriptRoot\Modules\Speech.psm1" -Force
 Import-Module "$PSScriptRoot\Modules\Recognition.psm1" -Force
+Import-Module "$PSScriptRoot\Modules\Commands.psm1" -Force
+
+# --------------------------------------------------
+# Banner
+# --------------------------------------------------
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "          Computer AI v0.3" -ForegroundColor Cyan
+Write-Host "          Computer AI v0.4" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Load Configuration
-$config = Get-Content "$PSScriptRoot\Config.json" -Raw | ConvertFrom-Json
+# --------------------------------------------------
+# Initialize
+# --------------------------------------------------
 
-# Initialize Speech
+Initialize-Config
+
+$config = Get-Config
+
 Initialize-Speech `
     -Volume $config.Volume `
     -Rate $config.SpeechRate
 
+Write-Log "Computer AI Started"
+
 Speak "Computer AI is now online."
 
+# --------------------------------------------------
 # Main Loop
+# --------------------------------------------------
+
 while ($true)
 {
     $command = Read-Host "Computer"
 
-    switch ($command.ToLower())
+    if ([string]::IsNullOrWhiteSpace($command))
     {
-        "help" {
-            Write-Host ""
-            Write-Host "Commands:"
-            Write-Host "  help"
-            Write-Host "  time"
-            Write-Host "  date"
-            Write-Host "  clear"
-            Write-Host "  exit"
-        }
+        continue
+    }
 
-        "time" {
-            Speak (Get-Date -Format "h:mm tt")
-        }
+    Write-Log "User Command: $command"
 
-        "date" {
-            Speak (Get-Date -Format "D")
-        }
+    $result = Invoke-ComputerCommand $command
 
-        "clear" {
-            Clear-Host
-        }
-"notepad" {
-    Speak "Opening Notepad."
-    Start-Process notepad.exe
+switch ($result)
+{
+    $false {
 
-}"calculator" {
-    Speak "Opening Calculator."
-    Start-Process calc.exe
+        Write-Log "Computer AI Stopped"
+        break
+    }
 
-}"chrome" {
-    Speak "Opening Google Chrome."
-    Start-Process chrome.exe
-}"voice" {
+    "RESTART" {
 
-    Speak "Voice mode enabled."
+        Write-Log "Restart requested."
 
-    while ($true)
-    {
-        $heard = Listen
-
-        if (-not $heard) {
-            continue
-        }
-
-        switch ($heard.ToLower())
-        {
-            "computer" {
-                Speak "Yes?"
-            }
-
-            "time" {
-                Speak (Get-Date -Format "h:mm tt")
-            }
-
-            "date" {
-                Speak (Get-Date -Format "D")
-            }
-
-            "exit voice" {
-                Speak "Leaving voice mode."
-                break
-            }
-
-            default {
-                Speak "You said $heard"
-            }
-        }
+        continue
     }
 }
-        "exit" {
-            Speak "Goodbye."
-            break
-        }
-
-        default {
-            Speak "I don't know that command."
-        }
-    }
 }

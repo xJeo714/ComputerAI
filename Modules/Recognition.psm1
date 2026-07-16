@@ -1,19 +1,33 @@
-Add-Type -AssemblyName System.SpeechImport-Module "$PSScriptRoot\Modules\Recognition.psm1" -Force
+# ==========================================
+# Recognition Module
+# Computer AI
+# ==========================================
 
-$Global:Recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine
+Add-Type -AssemblyName System.Speech
 
-$Global:Recognizer.LoadGrammar(
-    (New-Object System.Speech.Recognition.DictationGrammar)
-)
+$script:Recognizer = $null
 
-$Global:Recognizer.SetInputToDefaultAudioDevice()
+function Initialize-Recognition {
+
+    $script:Recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine
+
+    $grammar = New-Object System.Speech.Recognition.DictationGrammar
+
+    $script:Recognizer.LoadGrammar($grammar)
+
+    $script:Recognizer.SetInputToDefaultAudioDevice()
+}
 
 function Listen {
+
+    if ($null -eq $script:Recognizer) {
+        throw "Recognition engine has not been initialized."
+    }
 
     Write-Host ""
     Write-Host "Listening..." -ForegroundColor Yellow
 
-    $result = $Global:Recognizer.Recognize()
+    $result = $script:Recognizer.Recognize()
 
     if ($result) {
         Write-Host "Heard: $($result.Text)" -ForegroundColor Cyan
@@ -23,4 +37,4 @@ function Listen {
     return $null
 }
 
-Export-ModuleMember -Function Listen
+Export-ModuleMember -Function Initialize-Recognition, Listen
