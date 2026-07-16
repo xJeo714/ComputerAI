@@ -3,7 +3,8 @@
 # Version 0.3
 # ==========================================
 
-Clear-Host
+Clear-Host Import-Module "$PSScriptRoot\Modules\Speech.psm1" -Force
+Import-Module "$PSScriptRoot\Modules\Recognition.psm1" -Force
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
@@ -15,18 +16,9 @@ Write-Host ""
 $config = Get-Content "$PSScriptRoot\Config.json" -Raw | ConvertFrom-Json
 
 # Initialize Speech
-Add-Type -AssemblyName System.Speech
-
-$speaker = New-Object System.Speech.Synthesis.SpeechSynthesizer
-$speaker.Volume = $config.Volume
-$speaker.Rate   = $config.SpeechRate
-
-function Speak {
-    param([string]$Text)
-
-    Write-Host "Computer: $Text" -ForegroundColor Green
-    $speaker.Speak($Text)
-}
+Initialize-Speech `
+    -Volume $config.Volume `
+    -Rate $config.SpeechRate
 
 Speak "Computer AI is now online."
 
@@ -65,10 +57,46 @@ while ($true)
 }"calculator" {
     Speak "Opening Calculator."
     Start-Process calc.exe
-    
+
 }"chrome" {
     Speak "Opening Google Chrome."
     Start-Process chrome.exe
+}"voice" {
+
+    Speak "Voice mode enabled."
+
+    while ($true)
+    {
+        $heard = Listen
+
+        if (-not $heard) {
+            continue
+        }
+
+        switch ($heard.ToLower())
+        {
+            "computer" {
+                Speak "Yes?"
+            }
+
+            "time" {
+                Speak (Get-Date -Format "h:mm tt")
+            }
+
+            "date" {
+                Speak (Get-Date -Format "D")
+            }
+
+            "exit voice" {
+                Speak "Leaving voice mode."
+                break
+            }
+
+            default {
+                Speak "You said $heard"
+            }
+        }
+    }
 }
         "exit" {
             Speak "Goodbye."
