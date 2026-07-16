@@ -1,0 +1,17 @@
+{
+    "AssistantName": "Computer",
+    "Voice": "Default",
+    "SpeechRate": 0,
+    "Volume": 100,
+
+    "WakeWord": "computer",
+
+    "UseOpenAI": false,
+    "UseOllama": true,
+
+    "OllamaModel": "llama3",
+
+    "LogConversations": true,
+
+    "Debug": true
+}
